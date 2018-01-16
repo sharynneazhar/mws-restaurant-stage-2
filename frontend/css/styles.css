@@ -238,6 +238,11 @@ nav h1 a {
   text-transform: uppercase;
 }
 
+@media (max-width: 414px) {
+  #restaurants-list {
+    grid-template-columns: repeat(auto-fill, 350px);
+  }
+}
 @media (max-width: 375px) {
   #restaurants-list {
     grid-template-columns: repeat(auto-fill, 350px);
@@ -276,7 +281,7 @@ nav h1 a {
 
 .inside #map-container {
   background: blue none repeat scroll 0 0;
-  height: 100%;
+  height: calc(100% - 135px);
   position: fixed;
   right: 0;
   top: 70px;
@@ -339,7 +344,15 @@ nav h1 a {
 
 #reviews-container h2 {
   color: #f58500;
-  font-size: 24pt;
+  font-size: 20pt;
+  font-weight: 300;
+  letter-spacing: -1px;
+	margin-top: 20px;
+  padding-bottom: 1pt;
+}
+#reviews-container h3 {
+  color: #f58500;
+  font-size: 18pt;
   font-weight: 300;
   letter-spacing: -1px;
 	margin-top: 20px;

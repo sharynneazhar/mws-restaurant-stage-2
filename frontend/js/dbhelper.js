@@ -1,6 +1,13 @@
 /**
  * Common database helper functions.
  */
+
+// Get IndexDB
+window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
+
+// Open (or create) the database
+var idbRequest = indexedDB.open("MyDatabase", 1);
+
 class DBHelper {
 
   /**
@@ -16,15 +23,14 @@ class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(DBHelper.DATABASE_URL, { method: 'GET' })
-      .then(res => {
-        if (!res.ok) {
-          throw "Unable to fetch restaurant data from API";
-        }
-        return res.json();
-      })
-      .then(restaurants => callback(null, restaurants))
-      .catch(err => callback(err, null))
+    fetch(DBHelper.DATABASE_URL, {method: 'GET'}).then(res => {
+      if (!res.ok) {
+        throw "Unable to fetch restaurant data from API";
+      }
+      return res.json();
+    })
+    .then(restaurants => callback(null, restaurants))
+    .catch(err => callback(err, null))
   }
 
   /**
@@ -153,13 +159,7 @@ class DBHelper {
    * Map marker for a restaurant.
    */
   static mapMarkerForRestaurant(restaurant, map) {
-    const marker = new google.maps.Marker({
-      position: restaurant.latlng,
-      title: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant),
-      map: map,
-      animation: google.maps.Animation.DROP}
-    );
+    const marker = new google.maps.Marker({position: restaurant.latlng, title: restaurant.name, url: DBHelper.urlForRestaurant(restaurant), map: map, animation: google.maps.Animation.DROP});
     return marker;
   }
 
