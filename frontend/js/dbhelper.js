@@ -2,14 +2,7 @@
  * Common database helper functions.
  */
 
-// Get IndexDB
-window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
-
-// Open (or create) the database
-var idbRequest = indexedDB.open("MyDatabase", 1);
-
 class DBHelper {
-
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
@@ -19,18 +12,97 @@ class DBHelper {
     return `http://localhost:${port}/restaurants`;
   }
 
+  static createIDBStore(restaurants) {
+    // Get the compatible IndexedDB version
+    var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
+
+    // Open (or create) the database
+    var open = indexedDB.open("RestaurantDB", 1);
+
+    // Create the schema
+    open.onupgradeneeded = function() {
+      var db = open.result;
+      var store = db.createObjectStore("RestaurantStore", { keyPath: "id" });
+      var index = store.createIndex("by-id", "id");
+    };
+
+    open.onerror = function(err) {
+      console.error("Something went wrong with IndexDB: " + err.target.errorCode);
+    }
+
+    open.onsuccess = function() {
+      // Start a new transaction
+      var db = open.result;
+      var tx = db.transaction("RestaurantStore", "readwrite");
+      var store = tx.objectStore("RestaurantStore");
+      var index = store.index("by-id");
+
+      // Add the restaurant data
+      restaurants.forEach(function(restaurant) {
+        store.put(restaurant);
+      });
+
+      // Close the db when the transaction is done
+      tx.oncomplete = function() {
+        db.close();
+      };
+    }
+  }
+
+  static getCachedData(callback) {
+    var restaurants = [];
+
+    // Get the compatible IndexedDB version
+    var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
+    var open = indexedDB.open("RestaurantDB", 1);
+
+    open.onsuccess = function() {
+      // Start a new transaction
+      var db = open.result;
+      var tx = db.transaction("RestaurantStore", "readwrite");
+      var store = tx.objectStore("RestaurantStore");
+      var getData = store.getAll();
+
+      getData.onsuccess = function() {
+        callback(null, getData.result);
+      }
+
+      // Close the db when the transaction is done
+      tx.oncomplete = function() {
+        db.close();
+      };
+    }
+
+  }
+
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(DBHelper.DATABASE_URL, {method: 'GET'}).then(res => {
-      if (!res.ok) {
-        throw "Unable to fetch restaurant data from API";
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', DBHelper.DATABASE_URL);
+
+    xhr.onerror = () => {
+      DBHelper.getCachedData((error, restaurants) => {
+        if (restaurants.length > 0) {
+          console.log('Unable to fetch data from server. Using cache data instead');
+          callback(null, restaurants);
+        }
+      });
+    }
+
+    xhr.onload = () => {
+      if (xhr.status === 200) { // Got a success response from server!
+        const restaurants = JSON.parse(xhr.responseText);
+        DBHelper.createIDBStore(restaurants); // Cache restaurants
+        callback(null, restaurants);
+      } else { // Oops!. Got an error from server.
+        const error = (`Request failed. Returned status of ${xhr.status}`);
+        callback(error, null);
       }
-      return res.json();
-    })
-    .then(restaurants => callback(null, restaurants))
-    .catch(err => callback(err, null))
+    };
+
+    xhr.send();
   }
 
   /**
@@ -159,8 +231,13 @@ class DBHelper {
    * Map marker for a restaurant.
    */
   static mapMarkerForRestaurant(restaurant, map) {
-    const marker = new google.maps.Marker({position: restaurant.latlng, title: restaurant.name, url: DBHelper.urlForRestaurant(restaurant), map: map, animation: google.maps.Animation.DROP});
+    const marker = new google.maps.Marker({
+      position: restaurant.latlng,
+      title: restaurant.name,
+      url: DBHelper.urlForRestaurant(restaurant),
+      map: map,
+      animation: google.maps.Animation.DROP
+    });
     return marker;
   }
-
 }
