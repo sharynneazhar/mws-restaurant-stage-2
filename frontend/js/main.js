@@ -8,9 +8,34 @@ var markers = []
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
+  // Register service worker for offline viewing of site
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.register('/sw.js')
+    .then(registration => console.log('ServiceWorker registration successful with scope: ', registration.scope))
+    .catch(err => console.log('ServiceWorker registration failed: ', err));
+  }
+
   fetchNeighborhoods();
   fetchCuisines();
 });
+
+/**
+ * Initialize Google map, called from HTML.
+ */
+window.initMap = () => {
+  let loc = {
+    lat: 40.722216,
+    lng: -73.987501
+  };
+
+  self.map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 12,
+    center: loc,
+    scrollwheel: false
+  });
+
+  updateRestaurants();
+}
 
 /**
  * Fetch all neighborhoods and set their HTML.
@@ -65,22 +90,6 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
     option.value = cuisine;
     select.append(option);
   });
-}
-
-/**
- * Initialize Google map, called from HTML.
- */
-window.initMap = () => {
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
-  updateRestaurants();
 }
 
 /**
@@ -177,13 +186,4 @@ addMarkersToMap = (restaurants = self.restaurants) => {
     });
     self.markers.push(marker);
   });
-}
-
-/**
- * Register service worker for offline viewing of site
- */
-if (navigator.serviceWorker) {
-  navigator.serviceWorker.register('/js/serviceWorker.js')
-    .then(() => console.log('Service Worker registered'))
-    .catch(() => console.log('Service Worker failed'));
 }
