@@ -306,6 +306,7 @@ nav h1 a {
 }
 
 #restaurant-img {
+  height: auto;
   width: 100%;
 }
 
@@ -334,10 +335,10 @@ nav h1 a {
 	width: 50%;
 }
 
-#restaurant-container, #reviews-container {
+#restaurant-container,
+#reviews-container {
   display: flex;
-  flex-flow: column wrap;
-  justify-content: space-between;
+  flex-direction: column;
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
 	padding: 30px;
