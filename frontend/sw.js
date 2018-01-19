@@ -8,6 +8,7 @@ self.addEventListener('install', event => {
         'css/styles.css',
         'js/dbhelper.js',
         'js/main.js',
+        'js/restaurant_info.js',
         'img/1.jpg',
         'img/2.jpg',
         'img/3.jpg',
