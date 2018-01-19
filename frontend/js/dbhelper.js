@@ -22,7 +22,7 @@ class DBHelper {
     // Create the schema
     open.onupgradeneeded = function() {
       var db = open.result;
-      var store = db.createObjectStore("RestaurantStore", { keyPath: "id" });
+      var store = db.createObjectStore("RestaurantStore", {keyPath: "id"});
       var index = store.createIndex("by-id", "id");
     };
 
@@ -79,30 +79,28 @@ class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', DBHelper.DATABASE_URL);
-
-    xhr.onerror = () => {
+    if (navigator.onLine) {
+      let xhr = new XMLHttpRequest();
+      xhr.open('GET', DBHelper.DATABASE_URL);
+      xhr.onload = () => {
+        if (xhr.status === 200) { // Got a success response from server!
+          const restaurants = JSON.parse(xhr.responseText);
+          DBHelper.createIDBStore(restaurants); // Cache restaurants
+          callback(null, restaurants);
+        } else { // Oops!. Got an error from server.
+          const error = (`Request failed. Returned status of ${xhr.status}`);
+          callback(error, null);
+        }
+      };
+      xhr.send();
+    } else {
+      console.log('Browser Offline - Using cached data!');
       DBHelper.getCachedData((error, restaurants) => {
         if (restaurants.length > 0) {
-          console.log('Unable to fetch data from server. Using cache data instead');
           callback(null, restaurants);
         }
       });
     }
-
-    xhr.onload = () => {
-      if (xhr.status === 200) { // Got a success response from server!
-        const restaurants = JSON.parse(xhr.responseText);
-        DBHelper.createIDBStore(restaurants); // Cache restaurants
-        callback(null, restaurants);
-      } else { // Oops!. Got an error from server.
-        const error = (`Request failed. Returned status of ${xhr.status}`);
-        callback(error, null);
-      }
-    };
-
-    xhr.send();
   }
 
   /**
@@ -234,7 +232,7 @@ class DBHelper {
     const marker = new google.maps.Marker({
       position: restaurant.latlng,
       title: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant),
+      url: DBHelper.urlForRestaurant(restaurant), 
       map: map,
       animation: google.maps.Animation.DROP
     });

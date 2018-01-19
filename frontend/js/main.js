@@ -8,15 +8,9 @@ var markers = []
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
-  // Register service worker for offline viewing of site
-  if (navigator.serviceWorker) {
-    navigator.serviceWorker.register('sw.js')
-    .then(registration => console.log('ServiceWorker registration successful with scope: ', registration.scope))
-    .catch(err => console.log('ServiceWorker registration failed: ', err));
-  }
-
   fetchNeighborhoods();
   fetchCuisines();
+  registerServiceWorker();
 });
 
 /**
@@ -35,6 +29,19 @@ window.initMap = () => {
   });
 
   updateRestaurants();
+}
+
+/**
+ *  Register service worker for offline viewing of site
+ */
+registerServiceWorker = () => {
+  if (navigator.serviceWorker) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => console.log('ServiceWorker registration successful with scope: ', registration.scope))
+        .catch(err => console.log('ServiceWorker registration failed: ', err));
+    })
+  }
 }
 
 /**
@@ -149,7 +156,7 @@ createRestaurantHTML = (restaurant) => {
 
   const image = document.createElement('img');
   image.className = 'restaurant-img';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.setAttribute("data-src", DBHelper.imageUrlForRestaurant(restaurant));
   image.alt = restaurant.name + ' Restaurant Image';
   li.append(image);
 
@@ -172,6 +179,9 @@ createRestaurantHTML = (restaurant) => {
   more.tabIndex = 4;
   more.setAttribute('aria-label', 'View Details for ' + restaurant.name + ' Restaurant');
   li.append(more)
+
+  // Lazyloads the images
+  new LazyLoad();
 
   return li
 }
