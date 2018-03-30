@@ -2,9 +2,9 @@
 ---
 #### _Three Stage Course Material Project - Restaurant Reviews_
 
-## Project Overview: Stage 2
+## Project Overview: Stage 3
 
-You will build on your project from Restaurant Reviews: Stage 1 by adding offline indexing with IndexedDB and achieving a set of site performance targets as audited with Google Lighthouse.
+You will build on your project from Restaurant Reviews: Stage 2 by adding the capability to add reviews to the system and mark restaurants as favorites. Updates are deferred while the application is offline until a connection is re-established.
 
 
 ## Getting Started
@@ -46,5 +46,5 @@ cd frontend
 ```
 ##### Start the app in browser
 ```
-http://localhost:8000
+http://localhost:[port]
 ```
